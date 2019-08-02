@@ -41,6 +41,7 @@ RUN pip3 install -U \
 
 RUN apt-get update && apt-get install -y \
         ros-dashing-desktop \
+        ros-dashing-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
 RUN echo "source /opt/ros/dashing/setup.bash" >> /root/.bashrc

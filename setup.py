@@ -6,10 +6,7 @@ package_name = 'centernet_ros2'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[],
-    # py_modules=[
-    #     'scripts.node_test'
-    # ],
+    packages=[package_name],
     data_files=[],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -30,7 +27,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'node_test = scripts.node_test:main'
+            'object_detector = centernet_ros2.object_detector:main'
         ],
     },
 )
