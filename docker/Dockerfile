@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 RUN pip3 install -U \
         argcomplete \
         setuptools \
-        torch==0.4.1\
         http://download.pytorch.org/whl/cu92/torch-0.4.1-cp36-cp36m-linux_x86_64.whl \
         torchvision==0.2.2 \
         cython \
