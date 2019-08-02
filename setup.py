@@ -7,9 +7,9 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=[],
-    py_modules=[
-        'scripts.node_test'
-    ],
+    # py_modules=[
+    #     'scripts.node_test'
+    # ],
     data_files=[],
     install_requires=['setuptools'],
     zip_safe=True,

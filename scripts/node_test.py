@@ -1,28 +1,27 @@
+#!/usr/bin/env python
+#! coding: utf-8
+
 import rclpy
+from rclpy.node import Node
 from std_msgs.msg import String
+from sensor_msgs.msg import Image
+
+class ObjectDetector(Node):
+    def __init__(self):
+        super().__init__('object_detector')
+        self.image_sub = self.create_subscription(Image, '/usb_cam/image_raw', self.image_callback, 1)
+        self.image_pub = self.create_publisher(Image, '/detected_image', 1)
+
+    def image_callback(self, msg):
+        print('callback')
 
 def main(args=None):
     rclpy.init(args=args)
 
-    node = rclpy.create_node('node')
-    publisher = node.create_publisher(String, 'topic')
-
-    msg = String()
-    i = 0
-
-    def timer_callback():
-        nonlocal i
-        msg.data = 'Hello World! ^^: %d' % i
-        i += 1
-        node.get_logger().info('Publishing: "%s"' % msg.data)
-        publisher.publish(msg)
-
-    timer_period = 0.5
-    timer = node.create_timer(timer_period, timer_callback)
+    node = ObjectDetector()
 
     rclpy.spin(node)
 
-    node.destroy_timer(timer)
     node.destroy_node()
     rclpy.shutdown()
 
