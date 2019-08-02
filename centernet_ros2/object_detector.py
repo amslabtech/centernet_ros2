@@ -4,6 +4,7 @@
 import os
 import sys
 import cv2
+import time
 
 import rclpy
 from rclpy.node import Node
@@ -12,6 +13,23 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
+## from https://github.com/xingyizhou/CenterNet/blob/master/src/lib/utils/debugger.pyjj:w
+coco_class_name = [
+     'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+     'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
+     'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse',
+     'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack',
+     'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis',
+     'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
+     'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass',
+     'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich',
+     'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake',
+     'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv',
+     'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
+     'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
+     'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+]
+## end from
 
 class ObjectDetector(Node):
     def __init__(self):
@@ -31,15 +49,44 @@ class ObjectDetector(Node):
         opt = opts().init('{} --load_model {}'.format(TASK, MODEL_PATH).split(' '))
 
         self.detector = detector_factory[opt.task](opt)
+        print('=== object detector ===')
+        print('waiting for image...')
 
     def image_callback(self, msg):
         print('callback')
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            print(cv_image)
-            cv2.imshow('image', cv_image)
-            cv2.waitkey(0)
-            self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+            start = time.time()
+            results = self.detector.run(cv_image)['results']
+            inferece_time = time.time() - start
+            image = cv_image
+            class_num = len(results)
+            for i in range(1, class_num + 1):
+                for obj in results[i]:
+                    confidence = obj[4]
+                    if confidence > 0.5:
+                        # print('class {}'.format(i))
+                        # print(obj)
+                        bbox = obj[:4]
+                        # bbox: [umin, vmin, umax, vmax]
+                        category = i - 1
+                        text = coco_class_name[category]
+                        print(text, confidence)
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        text_size = cv2.getTextSize(text, font, 0.5, 2)[0]
+                        text_box = [bbox[0], int(bbox[1] - text_size[1]), int(bbox[0] + text_size[0]), bbox[1]]
+                        cv2.rectangle(image, (text_box[0], text_box[1]), (text_box[2], text_box[3]), (255, 255, 0), -1)
+                        cv2.putText(image, text, (bbox[0], int(bbox[1] - 2)), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.rectangle(image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 255, 0), 2)
+
+            # cv2.namedWindow('image')
+            # cv2.imshow('image', image)
+            # cv2.waitKey(1)
+
+            print('inference time: {:.4f}[s]'.format(inferece_time))
+            print('fps: {:.4f}'.format(1.0 / inferece_time))
+            self.image_pub.publish(self.bridge.cv2_to_imgmsg(image, "bgr8"))
+            print('published image')
         except CvBridgeError as e:
             print(e)
 
