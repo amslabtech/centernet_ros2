@@ -40,7 +40,7 @@ RUN pip3 install -U \
         cffi
 
 RUN apt-get update && apt-get install -y \
-        ros-dashing-desktop \
+        ros-dashing-ros-base \
         ros-dashing-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
@@ -61,6 +61,8 @@ RUN echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}' >> ~/
 # set default python vertion 3
 RUN rm -f /usr/bin/python
 RUN ln -s /usr/bin/python3 /usr/bin/python
+
+RUN sed -i "1254s/torch\.backends\.cudnn\.enabled/False/g" /usr/local/lib/python3.6/dist-packages/torch/nn/functional.py
 
 # build centernet
 RUN git clone https://github.com/cocodataset/cocoapi.git --depth=1 /root/cocoapi
