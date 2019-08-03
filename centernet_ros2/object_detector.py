@@ -39,7 +39,7 @@ class ObjectDetector(Node):
         self.image_pub = self.create_publisher(Image, '/detection_image', 1)
         self.bridge = CvBridge()
 
-        self.CONFIDENCE_THRESHOLD = args.confidence_threshold
+        self.CONFIDENCE_THRESHOLD = float(args.confidence_threshold)
 
         # CenterNet
         CENTERNET_PATH = '/root/CenterNet/src'
@@ -65,6 +65,7 @@ class ObjectDetector(Node):
             inferece_time = time.time() - start
             image = cv_image
             class_num = len(results)
+            bounding_boxes = list()
             for i in range(1, class_num + 1):
                 for obj in results[i]:
                     confidence = obj[4]
@@ -76,6 +77,8 @@ class ObjectDetector(Node):
                         category = i - 1
                         text = coco_class_name[category]
                         print(text, confidence)
+                        bounding_box = {"Class": text, "probability": confidence, "xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]}
+                        bounding_boxes.append(bounding_box)
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         text_size = cv2.getTextSize(text, font, 0.5, 2)[0]
                         text_box = [bbox[0], int(bbox[1] - text_size[1]), int(bbox[0] + text_size[0]), bbox[1]]
@@ -86,6 +89,7 @@ class ObjectDetector(Node):
             # cv2.namedWindow('image')
             # cv2.imshow('image', image)
             # cv2.waitKey(1)
+            print(bounding_boxes)
 
             print('inference time: {:.4f}[s]'.format(inferece_time))
             print('fps: {:.4f}'.format(1.0 / inferece_time))
