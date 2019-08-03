@@ -17,5 +17,5 @@ before_install:
     - sudo mv docker-compose /usr/local/bin
     - docker-compose up -d
 
- script:
+script:
      - docker-compose run master /bin/bash -c "cd ros2_ws && colcon build"
