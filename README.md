@@ -1,4 +1,6 @@
 # centernet_ros2
+[![Build Status](https://travis-ci.org/amslabtech/centernet_ros2.svg?branch=master)](https://travis-ci.org/amslabtech/centernet_ros2)
+
 ROS2 object detector using CenterNet
 
 ## Environment and Requirement
