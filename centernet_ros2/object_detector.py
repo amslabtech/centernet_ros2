@@ -6,6 +6,7 @@ import sys
 import cv2
 import time
 import argparse
+import json
 
 import rclpy
 from rclpy.node import Node
@@ -37,6 +38,7 @@ class ObjectDetector(Node):
         super().__init__('object_detector')
         self.image_sub = self.create_subscription(Image, '/usb_cam/image_raw', self.image_callback, 1)
         self.image_pub = self.create_publisher(Image, '/detection_image', 1)
+        self.bbox_pub = self.create_publisher(String, '/bounding_boxes', 1)
         self.bridge = CvBridge()
 
         self.CONFIDENCE_THRESHOLD = float(args.confidence_threshold)
@@ -65,7 +67,9 @@ class ObjectDetector(Node):
             inferece_time = time.time() - start
             image = cv_image
             class_num = len(results)
-            bounding_boxes = list()
+            bounding_boxes = dict()
+            bounding_boxes['list'] = list()
+            count = 0
             for i in range(1, class_num + 1):
                 for obj in results[i]:
                     confidence = obj[4]
@@ -77,19 +81,26 @@ class ObjectDetector(Node):
                         category = i - 1
                         text = coco_class_name[category]
                         print(text, confidence)
-                        bounding_box = {"Class": text, "probability": confidence, "xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]}
-                        bounding_boxes.append(bounding_box)
+                        bounding_box = {"class": text, "confidence": str(confidence), "xmin": str(bbox[0]), "ymin": str(bbox[1]), "xmax": str(bbox[2]), "ymax": str(bbox[3])}
+                        bounding_boxes['list'].append(bounding_box)
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         text_size = cv2.getTextSize(text, font, 0.5, 2)[0]
                         text_box = [bbox[0], int(bbox[1] - text_size[1]), int(bbox[0] + text_size[0]), bbox[1]]
                         cv2.rectangle(image, (text_box[0], text_box[1]), (text_box[2], text_box[3]), (255, 255, 0), -1)
                         cv2.putText(image, text, (bbox[0], int(bbox[1] - 2)), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.rectangle(image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 255, 0), 2)
+                        count += 1
 
             # cv2.namedWindow('image')
             # cv2.imshow('image', image)
             # cv2.waitKey(1)
-            print(bounding_boxes)
+            # print(bounding_boxes)
+            json_string = json.dumps(bounding_boxes)
+            # json_dict = json.loads(json_string)
+            # print(json_dict)
+            bbox_string = String()
+            bbox_string.data = json_string
+            self.bbox_pub.publish(bbox_string)
 
             print('inference time: {:.4f}[s]'.format(inferece_time))
             print('fps: {:.4f}'.format(1.0 / inferece_time))
@@ -104,7 +115,6 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('argv', nargs=argparse.REMAINDER, help='Pass arbitrary arguments to the excutable')
 
     args = parser.parse_args(argv)
-    print(type(args))
     rclpy.init(args=args.argv)
 
     node = ObjectDetector(args)
