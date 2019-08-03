@@ -5,6 +5,7 @@ import os
 import sys
 import cv2
 import time
+import argparse
 
 import rclpy
 from rclpy.node import Node
@@ -32,11 +33,13 @@ coco_class_name = [
 ## end from
 
 class ObjectDetector(Node):
-    def __init__(self):
+    def __init__(self, args):
         super().__init__('object_detector')
         self.image_sub = self.create_subscription(Image, '/usb_cam/image_raw', self.image_callback, 1)
         self.image_pub = self.create_publisher(Image, '/detection_image', 1)
         self.bridge = CvBridge()
+
+        self.CONFIDENCE_THRESHOLD = args.confidence_threshold
 
         # CenterNet
         CENTERNET_PATH = '/root/CenterNet/src'
@@ -50,6 +53,7 @@ class ObjectDetector(Node):
 
         self.detector = detector_factory[opt.task](opt)
         print('=== object detector ===')
+        print('CONFIDENCE_THRESHOLD:', self.CONFIDENCE_THRESHOLD)
         print('waiting for image...')
 
     def image_callback(self, msg):
@@ -64,7 +68,7 @@ class ObjectDetector(Node):
             for i in range(1, class_num + 1):
                 for obj in results[i]:
                     confidence = obj[4]
-                    if confidence > 0.5:
+                    if confidence > self.CONFIDENCE_THRESHOLD:
                         # print('class {}'.format(i))
                         # print(obj)
                         bbox = obj[:4]
@@ -90,10 +94,16 @@ class ObjectDetector(Node):
         except CvBridgeError as e:
             print(e)
 
-def main(args=None):
-    rclpy.init(args=args)
+def main(argv=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description='object_detector')
+    parser.add_argument('--confidence-threshold', default=0.3, help='threshold for bounding box adoption')
+    parser.add_argument('argv', nargs=argparse.REMAINDER, help='Pass arbitrary arguments to the excutable')
 
-    node = ObjectDetector()
+    args = parser.parse_args(argv)
+    print(type(args))
+    rclpy.init(args=args.argv)
+
+    node = ObjectDetector(args)
 
     rclpy.spin(node)
 
