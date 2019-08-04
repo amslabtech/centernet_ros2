@@ -49,3 +49,6 @@ colcon build --symlink-install
 source install/local_setup.bash
 ros2 run centernet_ros2 object_detector
 ```
+
+## References
+- https://github.com/xingyizhou/CenterNet
