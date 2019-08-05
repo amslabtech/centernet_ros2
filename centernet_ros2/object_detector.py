@@ -72,23 +72,23 @@ class ObjectDetector(Node):
             count = 0
             for i in range(1, class_num + 1):
                 for obj in results[i]:
-                    confidence = obj[4]
+                    confidence = obj.tolist()[4]
                     if confidence > self.CONFIDENCE_THRESHOLD:
                         # print('class {}'.format(i))
                         # print(obj)
-                        bbox = obj[:4]
+                        bbox = obj.tolist()[:4]
                         # bbox: [umin, vmin, umax, vmax]
                         category = i - 1
-                        text = coco_class_name[category]
-                        print(text, confidence)
-                        bounding_box = {"class": text, "confidence": str(confidence), "xmin": str(bbox[0]), "ymin": str(bbox[1]), "xmax": str(bbox[2]), "ymax": str(bbox[3])}
+                        text = coco_class_name[category] + ', {:.3f}'.format(confidence)
+                        print(text)
+                        bounding_box = {"class": coco_class_name[category], "confidence": confidence, "xmin": bbox[0], "ymin": bbox[1], "xmax": bbox[2], "ymax": bbox[3]}
                         bounding_boxes['list'].append(bounding_box)
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         text_size = cv2.getTextSize(text, font, 0.5, 2)[0]
-                        text_box = [bbox[0], int(bbox[1] - text_size[1]), int(bbox[0] + text_size[0]), bbox[1]]
+                        text_box = [int(bbox[0]), int(bbox[1] - text_size[1]), int(bbox[0] + text_size[0]), int(bbox[1])]
                         cv2.rectangle(image, (text_box[0], text_box[1]), (text_box[2], text_box[3]), (255, 255, 0), -1)
-                        cv2.putText(image, text, (bbox[0], int(bbox[1] - 2)), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.rectangle(image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 255, 0), 2)
+                        cv2.putText(image, text, (int(bbox[0]), int(bbox[1] - 2)), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.rectangle(image, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 255, 0), 2)
                         count += 1
 
             # cv2.namedWindow('image')

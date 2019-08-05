@@ -24,8 +24,8 @@ ROS2 object detector using CenterNet
   - /detection_image (sensor_msgs/Image)
     - image with bounding boxes and class name
   - /bounding_boxes (std_msgs/String)
-    - json string including bounding_boxes information 
-    - sample -> "{'list': [{'class': 'person', 'confidence': '0.8', 'xmin': '270.3', 'ymin': '12.6', 'xmax': '311.9', 'ymax': '39.0'}, {'class': ...}, ...]}"
+    - json string including bounding_boxes information
+    - sample -> "{'list': [{'class': 'person', 'confidence': 0.898, 'xmin': 270.3, 'ymin': 12.6, 'xmax': 311.9, 'ymax': 39.0}, {'class': ...}, ...]}"
 - Subscribed topic
   - /usb_cam/image_raw (sensor_msgs/Image)
 
