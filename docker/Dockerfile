@@ -79,6 +79,8 @@ RUN pip3 install -r requirements.txt
 
 WORKDIR /root
 
+RUN mkdir -p /root/.torch/models && wget "http://dl.yf.io/dla/models/imagenet/dla34-ba72cf86.pth" -O dla34-ba72cf86.pth && mv dla34-ba72cf86.pth /root/.torch/models
+
 RUN wget "https://drive.google.com/uc?export=download&id=1pl_-ael8wERdUREEnaIfqOV_VF2bEVRT" -O ctdet_coco_dla_2x.pth && mv ctdet_coco_dla_2x.pth /root/CenterNet/models
 
 WORKDIR /root
