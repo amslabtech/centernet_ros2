@@ -6,7 +6,9 @@ import sys
 import cv2
 import time
 import argparse
+import yaml
 import json
+from pprint import pprint
 
 import rclpy
 from rclpy.node import Node
@@ -34,14 +36,23 @@ coco_class_name = [
 ## end from
 
 class ObjectDetector(Node):
-    def __init__(self, args):
+    def __init__(self):
         super().__init__('object_detector')
-        self.image_sub = self.create_subscription(Image, '/usb_cam/image_raw', self.image_callback, 1)
-        self.image_pub = self.create_publisher(Image, '/detection_image', 1)
-        self.bbox_pub = self.create_publisher(String, '/bounding_boxes', 1)
+        # load config file
+        config_file_path = os.path.dirname(__file__) + '/config/config.yaml'
+        print('load config from' + config_file_path)
+        config = dict()
+        with open(config_file_path) as f:
+            config = yaml.load(f)
+        pprint(config)
+
+        self.image_sub = self.create_subscription(Image, config['input_image_topic'], self.image_callback, 1)
+        self.image_pub = self.create_publisher(Image, config['detection_image_topic'], 1)
+        self.bbox_pub = self.create_publisher(String, config['bounding_boxes_topic'], 1)
+
         self.bridge = CvBridge()
 
-        self.CONFIDENCE_THRESHOLD = float(args.confidence_threshold)
+        self.CONFIDENCE_THRESHOLD = config['confidence_threshold']
 
         # CenterNet
         CENTERNET_PATH = '/root/CenterNet/src'
@@ -56,6 +67,9 @@ class ObjectDetector(Node):
         self.detector = detector_factory[opt.task](opt)
         print('=== object detector ===')
         print('CONFIDENCE_THRESHOLD:', self.CONFIDENCE_THRESHOLD)
+        print('INPUT_IMAGE_TOPIC:', config['input_image_topic'])
+        print('DETECTION_IMAGE_TOPIC:', config['detection_image_topic'])
+        print('BOUNDING_BOXES_TOPIC:', config['bounding_boxes_topic'])
         print('waiting for image...')
 
     def image_callback(self, msg):
@@ -109,15 +123,10 @@ class ObjectDetector(Node):
         except CvBridgeError as e:
             print(e)
 
-def main(argv=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description='object_detector')
-    parser.add_argument('--confidence-threshold', default=0.3, help='threshold for bounding box adoption')
-    parser.add_argument('argv', nargs=argparse.REMAINDER, help='Pass arbitrary arguments to the excutable')
+def main(args=None):
+    rclpy.init(args=args)
 
-    args = parser.parse_args(argv)
-    rclpy.init(args=args.argv)
-
-    node = ObjectDetector(args)
+    node = ObjectDetector()
 
     rclpy.spin(node)
 

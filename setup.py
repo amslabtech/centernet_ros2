@@ -7,6 +7,8 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=[package_name],
+    package_dir={package_name: package_name},
+    package_data={package_name: ['config/*']},
     data_files=[],
     install_requires=['setuptools'],
     zip_safe=True,
