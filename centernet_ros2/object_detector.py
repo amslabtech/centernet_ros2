@@ -17,7 +17,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-## from https://github.com/xingyizhou/CenterNet/blob/master/src/lib/utils/debugger.pyjj:w
+## from https://github.com/xingyizhou/CenterNet/blob/master/src/lib/utils/debugger.py
 coco_class_name = [
      'person', 'bicycle', 'car', 'motorcycle', 'airplane',
      'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
@@ -88,8 +88,6 @@ class ObjectDetector(Node):
                 for obj in results[i]:
                     confidence = obj.tolist()[4]
                     if confidence > self.CONFIDENCE_THRESHOLD:
-                        # print('class {}'.format(i))
-                        # print(obj)
                         bbox = obj.tolist()[:4]
                         # bbox: [umin, vmin, umax, vmax]
                         category = i - 1
